@@ -1,12 +1,16 @@
 
 import tkinter as tk
 from tkinter import messagebox
+
 from services import SERVICES
+from calculator import open_calculator
 
 
 class UrodyApp:
+
     def __init__(self, root):
         self.root = root
+
         self.root.title("URODY - Salon Kosmetyczny")
         self.root.geometry("900x600")
         self.root.minsize(750, 500)
@@ -15,8 +19,13 @@ class UrodyApp:
         self.create_header()
         self.create_content()
 
+    # HEADER
     def create_header(self):
-        header = tk.Frame(self.root, bg="#D98CA5", height=110)
+        header = tk.Frame(
+            self.root,
+            bg="#D98CA5",
+            height=110
+        )
         header.pack(fill="x")
         header.pack_propagate(False)
 
@@ -36,9 +45,18 @@ class UrodyApp:
             fg="white"
         ).pack()
 
+    # MAIN CONTENT
     def create_content(self):
-        content = tk.Frame(self.root, bg="#FFF5F7")
-        content.pack(expand=True, fill="both", padx=30, pady=25)
+        content = tk.Frame(
+            self.root,
+            bg="#FFF5F7"
+        )
+        content.pack(
+            expand=True,
+            fill="both",
+            padx=30,
+            pady=25
+        )
 
         tk.Label(
             content,
@@ -80,8 +98,10 @@ class UrodyApp:
                 cursor="hand2"
             ).pack(pady=5)
 
+    # SERVICES CATALOG
     def show_services(self):
         window = tk.Toplevel(self.root)
+
         window.title("Katalog usług - URODY")
         window.geometry("500x430")
         window.configure(bg="#FFF5F7")
@@ -95,13 +115,18 @@ class UrodyApp:
         ).pack(pady=20)
 
         for service in SERVICES:
+
             frame = tk.Frame(
                 window,
                 bg="white",
                 padx=15,
                 pady=10
             )
-            frame.pack(fill="x", padx=25, pady=6)
+            frame.pack(
+                fill="x",
+                padx=25,
+                pady=6
+            )
 
             tk.Label(
                 frame,
@@ -113,41 +138,48 @@ class UrodyApp:
 
             tk.Label(
                 frame,
-                text=f"Cena: {service['price']} PLN | "
-                     f"Czas: {service['duration']} min",
+                text=f'Cena: {service["price"]} PLN | '
+                     f'Czas: {service["duration"]} min',
                 font=("Arial", 11),
                 bg="white",
                 fg="#555555"
             ).pack(anchor="w")
 
+    # PRICE CALCULATOR
     def show_calculator(self):
-        messagebox.showinfo(
-            "Kalkulator cen",
-            "Kalkulator cen będzie dostępny wkrótce."
-        )
+        open_calculator(self.root)
 
+    # APPOINTMENT PLANNER
     def show_planner(self):
         messagebox.showinfo(
             "Planer wizyty",
             "Planer wizyt będzie dostępny wkrótce."
         )
 
+    # BEAUTY GUIDE
     def show_guide(self):
         messagebox.showinfo(
             "Poradnik pielęgnacyjny",
             "Porady pielęgnacyjne będą dostępne wkrótce."
         )
 
+    # ABOUT SALON
     def show_about(self):
         messagebox.showinfo(
             "O salonie",
             "URODY - Salon Kosmetyczny\n\n"
-            "Godziny otwarcia: Poniedziałek - Piątek, 9:00-18:00\n"
+            "Godziny otwarcia:\n"
+            "Poniedziałek - Piątek, 9:00-18:00\n\n"
             "Zapraszamy!"
         )
 
 
-if __name__ == "__main__":
+# APPLICATION START
+def main():
     root = tk.Tk()
     app = UrodyApp(root)
     root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
