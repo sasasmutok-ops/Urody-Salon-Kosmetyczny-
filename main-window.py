@@ -1,6 +1,7 @@
 
 import tkinter as tk
 from tkinter import messagebox
+from services import SERVICES
 
 
 class UrodyApp:
@@ -80,10 +81,44 @@ class UrodyApp:
             ).pack(pady=5)
 
     def show_services(self):
-        messagebox.showinfo(
-            "Katalog usług",
-            "Katalog usług kosmetycznych będzie dostępny wkrótce."
-        )
+        window = tk.Toplevel(self.root)
+        window.title("Katalog usług - URODY")
+        window.geometry("500x430")
+        window.configure(bg="#FFF5F7")
+
+        tk.Label(
+            window,
+            text="KATALOG USŁUG",
+            font=("Arial", 22, "bold"),
+            bg="#FFF5F7",
+            fg="#713B50"
+        ).pack(pady=20)
+
+        for service in SERVICES:
+            frame = tk.Frame(
+                window,
+                bg="white",
+                padx=15,
+                pady=10
+            )
+            frame.pack(fill="x", padx=25, pady=6)
+
+            tk.Label(
+                frame,
+                text=service["name"],
+                font=("Arial", 14, "bold"),
+                bg="white",
+                fg="#713B50"
+            ).pack(anchor="w")
+
+            tk.Label(
+                frame,
+                text=f"Cena: {service['price']} PLN | "
+                     f"Czas: {service['duration']} min",
+                font=("Arial", 11),
+                bg="white",
+                fg="#555555"
+            ).pack(anchor="w")
 
     def show_calculator(self):
         messagebox.showinfo(
