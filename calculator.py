@@ -1,114 +1,223 @@
-"""Inline price calculator page for the single-window application."""
+
+"""Modern inline price calculator for Urody."""
 
 import tkinter as tk
 
 from services import SERVICES
 
 
-BG = "#FFF5F7"
-PINK = "#D98CA5"
-PINK_ACTIVE = "#C47791"
-PLUM = "#713B50"
-MUTED = "#65545B"
+# Modern Urody color palette
+BG = "#F5F5F0"
+GREEN = "#34483D"
+GREEN_DARK = "#26372F"
+TEXT = "#26332C"
+MUTED = "#747B73"
 WHITE = "#FFFFFF"
-BORDER = "#EBD5DD"
+BORDER = "#E1E5DD"
+SAGE = "#E9EEE8"
+GOLD = "#B49A70"
 
 
 class PriceCalculator:
+
     def __init__(self, parent):
         self.parent = parent
         self.selected_services = []
+
         self.view = tk.Frame(parent, bg=BG)
         self.view.pack(fill="both", expand=True)
+
         self.create_content()
 
     def create_content(self):
+
+        # Page heading
         tk.Label(
             self.view,
             text="Kalkulator cen",
-            font=("Arial", 22, "bold"),
+            font=("Arial", 24, "bold"),
             bg=BG,
-            fg=PLUM,
-        ).pack(anchor="w", pady=(0, 4))
+            fg=TEXT,
+        ).pack(anchor="w", pady=(0, 5))
+
         tk.Label(
             self.view,
-            text="Zaznacz usługi, aby obliczyć łączny koszt.",
-            font=("Arial", 10),
+            text="Wybierz zabiegi i sprawdź łączny koszt.",
+            font=("Arial", 11),
             bg=BG,
             fg=MUTED,
-        ).pack(anchor="w", pady=(0, 16))
+        ).pack(anchor="w", pady=(0, 22))
 
+        # Services card
         card = tk.Frame(
             self.view,
             bg=WHITE,
             highlightbackground=BORDER,
             highlightthickness=1,
-            padx=18,
-            pady=14,
+            padx=20,
+            pady=16,
         )
-        card.pack(fill="x", pady=(0, 14))
+        card.pack(fill="x", pady=(0, 18))
 
-        for service in SERVICES:
+        tk.Label(
+            card,
+            text="Dostępne zabiegi",
+            font=("Arial", 14, "bold"),
+            bg=WHITE,
+            fg=TEXT,
+        ).pack(anchor="w", pady=(0, 12))
+
+        for index, service in enumerate(SERVICES):
+
+            row = tk.Frame(
+                card,
+                bg=WHITE,
+                pady=9,
+            )
+            row.pack(fill="x")
+
             variable = tk.BooleanVar(value=False)
-            self.selected_services.append((service, variable))
-            row = tk.Frame(card, bg=WHITE)
-            row.pack(fill="x", pady=5)
-            tk.Checkbutton(
+
+            self.selected_services.append(
+                (service, variable)
+            )
+
+            # Checkbutton with readable colors
+            check = tk.Checkbutton(
                 row,
-                text=f"{service['name']}  ·  {service['duration']} min",
+                text=service["name"],
                 variable=variable,
                 command=self.update_total,
-                font=("Arial", 11, "bold"),
+                font=("Arial", 12, "bold"),
                 bg=WHITE,
-                fg=PLUM,
+                fg=TEXT,
                 activebackground=WHITE,
-                selectcolor=BG,
+                activeforeground=GREEN,
+                selectcolor=SAGE,
                 bd=0,
+                highlightthickness=0,
                 cursor="hand2",
-            ).pack(side="left")
+            )
+            check.pack(side="left")
+
+            tk.Label(
+                row,
+                text=f"{service['duration']} min",
+                font=("Arial", 10),
+                bg=WHITE,
+                fg=MUTED,
+            ).pack(side="left", padx=(12, 0))
+
             tk.Label(
                 row,
                 text=f"{service['price']} PLN",
-                font=("Arial", 11),
+                font=("Arial", 12, "bold"),
                 bg=WHITE,
-                fg=MUTED,
+                fg=GREEN,
             ).pack(side="right")
 
-        self.total_label = tk.Label(
-            self.view,
-            text="Łączna cena: 0 PLN",
-            font=("Arial", 18, "bold"),
-            bg=BG,
-            fg=PLUM,
-        )
-        self.total_label.pack(anchor="w", pady=(5, 12))
+            if index < len(SERVICES) - 1:
+                tk.Frame(
+                    card,
+                    bg=BORDER,
+                    height=1,
+                ).pack(fill="x")
 
-        tk.Button(
+        # Total card
+        total_card = tk.Frame(
             self.view,
+            bg=GREEN,
+            padx=22,
+            pady=20,
+        )
+        total_card.pack(fill="x", pady=(0, 16))
+
+        tk.Label(
+            total_card,
+            text="ŁĄCZNY KOSZT",
+            font=("Arial", 10, "bold"),
+            bg=GREEN,
+            fg="#DCE5DC",
+        ).pack(anchor="w")
+
+        self.total_label = tk.Label(
+            total_card,
+            text="0 PLN",
+            font=("Arial", 27, "bold"),
+            bg=GREEN,
+            fg=WHITE,
+        )
+        self.total_label.pack(anchor="w", pady=(5, 0))
+
+        self.count_label = tk.Label(
+            total_card,
+            text="Nie wybrano żadnych usług",
+            font=("Arial", 10),
+            bg=GREEN,
+            fg="#DCE5DC",
+        )
+        self.count_label.pack(anchor="w", pady=(4, 0))
+
+        # Buttons
+        buttons = tk.Frame(
+            self.view,
+            bg=BG,
+        )
+        buttons.pack(anchor="w")
+
+        self.clear_button = tk.Button(
+            buttons,
             text="Wyczyść wybór",
             command=self.clear_selection,
             font=("Arial", 10, "bold"),
-            bg=PINK,
-            fg=WHITE,
-            activebackground=PINK_ACTIVE,
-            activeforeground=WHITE,
+            bg=SAGE,
+            fg=GREEN,
+            activebackground="#DCE5DC",
+            activeforeground=GREEN_DARK,
             bd=0,
-            padx=18,
-            pady=10,
+            padx=20,
+            pady=12,
             cursor="hand2",
-        ).pack(anchor="w")
+        )
+        self.clear_button.pack(side="left")
 
     def update_total(self):
-        total = sum(
-            service["price"]
+
+        selected = [
+            service
             for service, variable in self.selected_services
             if variable.get()
+        ]
+
+        total = sum(
+            service["price"]
+            for service in selected
         )
-        self.total_label.configure(text=f"Łączna cena: {total} PLN")
+
+        count = len(selected)
+
+        self.total_label.configure(
+            text=f"{total} PLN"
+        )
+
+        if count == 0:
+            self.count_label.configure(
+                text="Nie wybrano żadnych usług"
+            )
+        elif count == 1:
+            self.count_label.configure(
+                text="Wybrano 1 usługę"
+            )
+        else:
+            self.count_label.configure(
+                text=f"Wybrano {count} usługi"
+            )
 
     def clear_selection(self):
+
         for _service, variable in self.selected_services:
             variable.set(False)
+
         self.update_total()
 
 
