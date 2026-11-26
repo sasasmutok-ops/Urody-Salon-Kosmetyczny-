@@ -114,3 +114,33 @@ Wszyscy członkowie zespołu będą uczestniczyć w testowaniu aplikacji, przegl
 Celem projektu jest stworzenie prostej, estetycznej i funkcjonalnej aplikacji desktopowej dla branży beauty. Aplikacja ma ułatwiać użytkownikom zapoznanie się z ofertą salonu, wybór usług, obliczanie kosztów i planowanie wizyt.
 Projekt będzie rozwijany etapami – najpierw zostanie zrealizowana podstawowa wersja MVP, a następnie, w zależności od dostępnego czasu i postępów zespołu, zostaną wykonane dodatkowe zadania.
 Aplikacja zostanie stworzona w Pythonie z wykorzystaniem Tkintera. Do przechowywania danych będą używane pliki lokalne, dlatego tworzenie bazy danych i serwera backendowego nie będzie konieczne.
+
+---
+
+## Architektura aplikacji i lokalna lista wizyt
+
+Projekt jest aplikacją desktopową w Pythonie/Tkinter. Nie korzysta z serwera; wszystkie zapisane wizyty są dostępne na komputerze, na którym uruchomiono program.
+
+- `main-window.py` — okno aplikacji, menu, strony oraz ekran „Wszystkie wizyty”.
+- `services.py` — katalog zabiegów, ceny i czas ich trwania.
+- `calculator.py` — wybór zabiegów i obliczanie łącznej ceny.
+- `modules/appointment_planner.py` — wybór usług i terminu wizyty; pola wyboru są płaskie i bez cienia.
+- `modules/appointment_logic.py` — walidacja, wykrywanie zajętych terminów i zapis/odczyt.
+- `appointments.json` — lokalne dane zapisanych wizyt; plik tworzy się przy pierwszym zapisie.
+- `modules/assets/` — grafiki używane w interfejsie.
+- `requirements.txt` — lista zewnętrznych zależności; obecnie nie są wymagane dodatkowe pakiety.
+
+### Lista wizyt
+
+Po zapisaniu terminu otwórz w menu „Wszystkie wizyty”. Ekran pokazuje zapisane wizyty posortowane od najnowszych, wraz z datą, godziną, usługami, czasem i ceną. Przycisk „Odśwież listę” wczytuje aktualne dane z `appointments.json`.
+
+### Uruchomienie
+
+W katalogu projektu utwórz i aktywuj środowisko, zainstaluj wymagania i uruchom aplikację:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python main-window.py
+```

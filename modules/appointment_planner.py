@@ -167,24 +167,49 @@ class AppointmentPlanner:
             )
             item.pack(fill="x", pady=5)
 
-            tk.Checkbutton(
+            indicator = tk.Canvas(
                 item,
-                text=service["name"],
-                variable=variable,
-                command=self._on_services_changed,
-                font=("Arial", 10, "bold"),
+                width=18,
+                height=18,
                 bg=WHITE,
-                fg=TEXT,
-                activebackground=WHITE,
-                activeforeground=GREEN,
-                selectcolor=SAGE,
-                anchor="w",
-                justify="left",
-                wraplength=175,
                 bd=0,
                 highlightthickness=0,
                 cursor="hand2",
-            ).pack(fill="x", anchor="w")
+                takefocus=True,
+            )
+            indicator.pack(side="left", anchor="nw", padx=(0, 6), pady=1)
+
+            name_label = tk.Label(
+                item,
+                text=service["name"],
+                font=("Arial", 10, "bold"),
+                bg=WHITE,
+                fg=TEXT,
+                anchor="w",
+                justify="left",
+                wraplength=175,
+                cursor="hand2",
+                takefocus=True,
+            )
+            name_label.pack(side="left", fill="x", expand=True, anchor="w")
+
+            self._draw_service_indicator(indicator, variable.get())
+            variable.trace_add(
+                "write",
+                lambda *_args, canvas=indicator, selected=variable:
+                self._draw_service_indicator(canvas, selected.get()),
+            )
+            for widget in (indicator, name_label):
+                widget.bind(
+                    "<Button-1>",
+                    lambda _event, selected=variable:
+                    self._toggle_service_choice(selected),
+                )
+                widget.bind(
+                    "<space>",
+                    lambda _event, selected=variable:
+                    self._toggle_service_choice(selected),
+                )
 
             tk.Label(
                 item,
@@ -196,6 +221,35 @@ class AppointmentPlanner:
                 bg=WHITE,
                 fg=MUTED,
             ).pack(anchor="w", padx=(24, 0), pady=(3, 0))
+
+    def _draw_service_indicator(self, canvas, selected):
+        canvas.delete("all")
+        canvas.create_rectangle(
+            2,
+            2,
+            16,
+            16,
+            outline=GREEN if selected else MUTED,
+            width=1,
+            fill=GREEN if selected else WHITE,
+        )
+        if selected:
+            canvas.create_line(
+                5,
+                9,
+                8,
+                12,
+                13,
+                6,
+                fill=WHITE,
+                width=2,
+                capstyle=tk.ROUND,
+                joinstyle=tk.ROUND,
+            )
+
+    def _toggle_service_choice(self, variable):
+        variable.set(not variable.get())
+        self._on_services_changed()
 
     # CALENDAR
 
