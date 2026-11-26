@@ -2,6 +2,7 @@
 """Single-window Urody salon application."""
 
 from datetime import datetime, timedelta
+from pathlib import Path
 import tkinter as tk
 
 from calculator import open_calculator
@@ -46,6 +47,31 @@ class UrodyApp:
         self.current_page = "home"
         self.flash_message = ""
         self.nav_buttons = {}
+
+        # Load images for the home page
+        assets_dir = Path(__file__).resolve().parent / "modules" / "assets"
+
+        self.home_images = {}
+
+        image_files = {
+            "services": "manicure.png",
+            "calculator": "calculator.png",
+            "planner": "planner.png",
+            "guide": "guide.png",
+            "about": "salon.png",
+        }
+
+        for page, filename in image_files.items():
+            image_path = assets_dir / filename
+
+            if image_path.exists():
+                try:
+                    picture = tk.PhotoImage(file=str(image_path))
+                    picture = picture.subsample(16, 16)
+                    self.home_images[page] = picture
+                except tk.TclError:
+                    print(f"Could not load image: {filename}")
+
 
         self.create_header()
         self.create_shell()
@@ -398,14 +424,23 @@ class UrodyApp:
                 pady=3,
             )
 
-            tk.Label(
-                item,
-                text=symbol,
-                font=("Arial", 15, "bold"),
-                bg=WHITE,
-                fg="#B69A5A",
-            ).pack(anchor="w", pady=(0, 7))
+            # CARD IMAGE
+            if page in self.home_images:
+                tk.Label(
+                    item,
+                    image=self.home_images[page],
+                    bg=WHITE,
+                ).pack(anchor="w", pady=(0, 7))
+            else:
+                tk.Label(
+                    item,
+                    text=symbol,
+                    font=("Arial", 15, "bold"),
+                    bg=WHITE,
+                    fg="#B69A5A",
+                ).pack(anchor="w", pady=(0, 7))
 
+            # CARD TITLE
             tk.Label(
                 item,
                 text=label,
@@ -414,6 +449,7 @@ class UrodyApp:
                 fg=GREEN,
             ).pack(anchor="w")
 
+            # CARD DESCRIPTION
             tk.Label(
                 item,
                 text=description,
@@ -424,6 +460,7 @@ class UrodyApp:
                 justify="left",
             ).pack(anchor="w", pady=(6, 12))
 
+            # CARD BUTTON
             tk.Button(
                 item,
                 text="Otwórz  →",
