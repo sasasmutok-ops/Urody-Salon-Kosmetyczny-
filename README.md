@@ -1,3 +1,57 @@
+## Instrukcja uruchomienia aktualnej wersji
+
+1. Pobierz lub sklonuj repozytorium projektu.
+2. Otwórz folder projektu w PyCharm.
+3. Upewnij się, że jest zainstalowany Python 3.x.
+4. Utwórz i aktywuj środowisko wirtualne:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+5. Zainstaluj wymagania:
+   ```bash
+   pip install -r requirements.txt
+   ```
+6. Uruchom aplikację:
+   ```bash
+   python main-window.py
+   ```
+
+### Opis działania aktualnej wersji
+
+Aktualna wersja aplikacji Urody jest aplikacją desktopową stworzoną w Pythonie z wykorzystaniem Tkintera.
+
+Po uruchomieniu programu użytkownik może korzystać z głównego interfejsu aplikacji i przechodzić do dostępnych funkcji.
+
+#### Katalog usług
+Plik `services.py` zawiera dane dotyczące dostępnych usług kosmetycznych, między innymi ich nazwy, ceny oraz przewidywany czas trwania.
+
+#### Kalkulator ceny
+Plik `calculator.py` odpowiada za wybór usług oraz obliczanie ich łącznej ceny. Użytkownik może wybrać kilka usług, a aplikacja oblicza sumę ich cen oraz czas trwania.
+
+#### Planowanie wizyty
+Moduły `appointment_planner.py` oraz `appointment_logic.py` odpowiadają za planowanie wizyty. Możliwe jest wybranie usługi, daty i godziny oraz sprawdzenie poprawności podanych danych.
+
+Logika planowania uwzględnia między innymi poprawność daty i godziny oraz dostępność terminu.
+
+#### Podsumowanie wizyty
+Po wybraniu odpowiednich danych aplikacja może przedstawić podsumowanie planowanej wizyty wraz z wybranymi usługami i ich kosztami.
+
+#### Testowanie
+Plik `test_appointment.py` zawiera testy związane z logiką planowania wizyt.
+
+### Aktualny stan projektu
+
+Obecna wersja zawiera podstawową strukturę aplikacji oraz działające elementy MVP związane z katalogiem usług, kalkulacją ceny i planowaniem wizyty.
+
+Projekt nie korzysta z zewnętrznej bazy danych ani serwera backendowego. Dane są obsługiwane lokalnie przez aplikację.
+
+
+
+
+
+
+
 KARTA PROJEKTU
 Urody – aplikacja desktopowa dla salonu kosmetycznego
 1. Nazwa projektu
