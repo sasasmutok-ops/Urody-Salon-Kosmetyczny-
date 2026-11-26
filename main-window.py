@@ -260,7 +260,7 @@ class UrodyApp:
     def show_home_page(self):
         self._page_heading(
             "Witamy w salonie Urody!",
-            "Wybierz funkcję lub sprawdź najbliższą zaplanowaną wizytę."
+            "Zadbaj o siebie. Zasługujesz na chwilę relaksu."
         )
 
         if self.flash_message:
@@ -270,42 +270,31 @@ class UrodyApp:
             )
             self.flash_message = ""
 
-        card = self._card(
+        # NEXT APPOINTMENT
+        card = tk.Frame(
             self.page_container,
-            padding=22
+            bg=GREEN,
+            padx=20,
+            pady=2,
         )
-        card.pack(fill="x", pady=(0, 16))
+        card.pack(fill="x", pady=(0, 22))
 
         tk.Label(
             card,
-            text="Najbliższa wizyta",
-            font=("Arial", 16, "bold"),
-            bg=WHITE,
-            fg=TEXT,
+            text="✧  NAJBLIŻSZA WIZYTA",
+            font=("Arial", 11, "bold"),
+            bg=GREEN,
+            fg="#D8C18A",
         ).pack(anchor="w", pady=(0, 12))
 
         appointment, storage_error = self._next_appointment()
 
         if storage_error:
-            tk.Label(
-                card,
-                text=f"Nie udało się wczytać zapisanych wizyt: {storage_error}",
-                font=("Arial", 10),
-                bg=WHITE,
-                fg=ERROR_FG,
-                wraplength=700,
-                justify="left",
-            ).pack(anchor="w")
-
+            appointment_text = (
+                f"Nie udało się wczytać wizyt: {storage_error}"
+            )
         elif appointment is None:
-            tk.Label(
-                card,
-                text="Brak zaplanowanych wizyt.",
-                font=("Arial", 11),
-                bg=WHITE,
-                fg=MUTED,
-            ).pack(anchor="w")
-
+            appointment_text = "Brak zaplanowanych wizyt."
         else:
             service_names = ", ".join(
                 service.get("name", "Usługa")
@@ -319,54 +308,136 @@ class UrodyApp:
                 )
             )
 
-            tk.Label(
-                card,
-                text=(
-                    f"{appointment['start']:%d.%m.%Y}  •  "
-                    f"{appointment['start']:%H:%M}–{end_time:%H:%M}"
-                ),
-                font=("Arial", 13, "bold"),
-                bg=WHITE,
-                fg=TEXT,
-            ).pack(anchor="w")
+            appointment_text = (
+                f"{appointment['start']:%d.%m.%Y}  •  "
+                f"{appointment['start']:%H:%M}–{end_time:%H:%M}\n"
+                f"{service_names}  ·  "
+                f"{appointment['data'].get('total_price', 0)} PLN"
+            )
 
-            tk.Label(
-                card,
-                text=(
-                    f"{service_names}  ·  "
-                    f"{appointment['data'].get('total_price', 0)} PLN"
-                ),
-                font=("Arial", 11),
-                bg=WHITE,
-                fg=MUTED,
-            ).pack(anchor="w", pady=(5, 0))
+        tk.Label(
+            card,
+            text=appointment_text,
+            font=("Arial", 12, "bold"),
+            bg=GREEN,
+            fg=WHITE,
+            justify="left",
+            wraplength=850,
+        ).pack(anchor="w", pady=(0, 14))
 
-        self._action_button(
+        tk.Button(
+            card,
+            text="ZAPLANUJ WIZYTĘ  →",
+            command=lambda: self.show_page("planner"),
+            font=("Arial", 9, "bold"),
+            bg="#D8C18A",
+            fg=GREEN_DARK,
+            activebackground="#C9AF73",
+            activeforeground=GREEN_DARK,
+            bd=0,
+            padx=18,
+            pady=11,
+            cursor="hand2",
+        ).pack(anchor="w")
+
+        # SECTION TITLE
+        tk.Label(
             self.page_container,
-            "Zaplanuj wizytę",
-            lambda: self.show_page("planner"),
-        ).pack(anchor="w", pady=(0, 22))
+            text="Odkryj nasze usługi",
+            font=("Arial", 18, "bold"),
+            bg=BG,
+            fg=GREEN_DARK,
+        ).pack(anchor="w", pady=(0, 4))
 
         tk.Label(
             self.page_container,
-            text="Nasze funkcje",
-            font=("Arial", 16, "bold"),
+            text="Wszystko, czego potrzebujesz w jednym miejscu.",
+            font=("Arial", 10),
             bg=BG,
-            fg=TEXT,
-        ).pack(anchor="w", pady=(0, 12))
+            fg=MUTED,
+        ).pack(anchor="w", pady=(0, 14))
 
+        # FUNCTION CARDS
         actions = tk.Frame(
             self.page_container,
             bg=BG
         )
         actions.pack(fill="x")
 
-        for page, label in self.NAV_ITEMS[1:4]:
-            self._action_button(
+        action_items = (
+            ("services", "✿", "Katalog usług",
+             "Poznaj nasze zabiegi i ceny."),
+            ("calculator", "▦", "Kalkulator cen",
+             "Oblicz koszt wybranych usług."),
+            ("planner", "▣", "Planer wizyty",
+             "Zaplanuj swoją wizytę."),
+            ("guide", "❀", "Poradnik",
+             "Odkryj wskazówki pielęgnacyjne."),
+            ("about", "✧", "O salonie",
+             "Poznaj nasz salon i kontakt."),
+        )
+
+        for column in range(3):
+            actions.grid_columnconfigure(column, weight=1)
+
+        for index, (page, symbol, label, description) in enumerate(action_items):
+            item = tk.Frame(
                 actions,
-                label,
-                lambda selected=page: self.show_page(selected),
-            ).pack(side="left", padx=(0, 10))
+                bg=WHITE,
+                highlightbackground="#D8C18A",
+                highlightthickness=1,
+                padx=12,
+                pady=8,
+            )
+
+            item.grid(
+                row=index // 3,
+                column=index % 3,
+                sticky="nsew",
+                padx=5,
+                pady=3,
+            )
+
+            tk.Label(
+                item,
+                text=symbol,
+                font=("Arial", 15, "bold"),
+                bg=WHITE,
+                fg="#B69A5A",
+            ).pack(anchor="w", pady=(0, 7))
+
+            tk.Label(
+                item,
+                text=label,
+                font=("Arial", 9, "bold"),
+                bg=WHITE,
+                fg=GREEN,
+            ).pack(anchor="w")
+
+            tk.Label(
+                item,
+                text=description,
+                font=("Arial", 9),
+                bg=WHITE,
+                fg=MUTED,
+                wraplength=210,
+                justify="left",
+            ).pack(anchor="w", pady=(6, 12))
+
+            tk.Button(
+                item,
+                text="Otwórz  →",
+                command=lambda selected=page: self.show_page(selected),
+                font=("Arial", 9, "bold"),
+                bg=GREEN,
+                fg=WHITE,
+                activebackground=GREEN_DARK,
+                activeforeground=WHITE,
+                bd=0,
+                padx=13,
+                pady=8,
+                cursor="hand2",
+            ).pack(anchor="w")
 
     # APPOINTMENT DATA
 
@@ -425,7 +496,7 @@ class UrodyApp:
                 self.page_container,
                 padding=17
             )
-            card.pack(fill="x", pady=5)
+            card.pack(fill="x", pady=6)
 
             row = tk.Frame(card, bg=WHITE)
             row.pack(fill="x")
@@ -444,10 +515,20 @@ class UrodyApp:
                     f"{service['price']} PLN  ·  "
                     f"{service['duration']} min"
                 ),
-                font=("Arial", 11),
+                font=("Arial", 11, "bold"),
+                bg=WHITE,
+                fg=GREEN,
+            ).pack(side="right")
+
+            tk.Label(
+                card,
+                text=service.get("description", ""),
+                font=("Arial", 10),
                 bg=WHITE,
                 fg=MUTED,
-            ).pack(side="right")
+                wraplength=720,
+                justify="left",
+            ).pack(anchor="w", pady=(9, 0))
 
     # CALCULATOR
 
@@ -475,27 +556,41 @@ class UrodyApp:
     def show_guide(self):
         self._page_heading(
             "Poradnik pielęgnacyjny",
-            "Kilka prostych wskazówek przed wizytą w salonie."
+            "Poznaj wskazówki, które pomogą Ci zadbać o siebie."
         )
 
         tips = (
             (
-                "Przed zabiegiem",
-                "Przyjdź kilka minut wcześniej i poinformuj kosmetologa o alergiach."
+                "🌸 Przed zabiegiem",
+                "Przyjdź kilka minut wcześniej. Poinformuj kosmetologa "
+                "o alergiach, wrażliwej skórze i ewentualnych przeciwwskazaniach."
             ),
             (
-                "Pielęgnacja skóry",
-                "Stosuj delikatne kosmetyki i pamiętaj o codziennej ochronie SPF."
+                "✨ Pielęgnacja skóry",
+                "Codziennie delikatnie oczyszczaj skórę, stosuj krem "
+                "nawilżający i pamiętaj o ochronie przeciwsłonecznej SPF."
             ),
             (
-                "Po wizycie",
-                "Przestrzegaj zaleceń specjalisty i unikaj drażniących produktów."
+                "💅 Pielęgnacja dłoni i paznokci",
+                "Regularnie nawilżaj dłonie i skórki wokół paznokci. "
+                "Unikaj obgryzania paznokci i używaj rękawiczek podczas sprzątania."
+            ),
+            (
+                "🦶 Pielęgnacja stóp",
+                "Dbaj o higienę stóp, regularnie je nawilżaj i wybieraj "
+                "wygodne obuwie."
+            ),
+            (
+                "🌿 Po wizycie",
+                "Stosuj się do zaleceń kosmetologa. Jeśli pojawi się "
+                "podrażnienie lub niepokojąca reakcja, skontaktuj się ze specjalistą."
             ),
         )
 
         for title, description in tips:
             card = self._card(
-                self.page_container
+                self.page_container,
+                padding=18
             )
             card.pack(fill="x", pady=6)
 
@@ -515,7 +610,7 @@ class UrodyApp:
                 fg=MUTED,
                 wraplength=720,
                 justify="left",
-            ).pack(anchor="w", pady=(5, 0))
+            ).pack(anchor="w", pady=(7, 0))
 
     # ABOUT SALON
 
@@ -545,6 +640,39 @@ class UrodyApp:
             font=("Arial", 11),
             bg=WHITE,
             fg=MUTED,
+        ).pack(anchor="w", pady=(5, 15))
+
+        tk.Label(
+            card,
+            text="Adres",
+            font=("Arial", 14, "bold"),
+            bg=WHITE,
+            fg=TEXT,
+        ).pack(anchor="w")
+
+        tk.Label(
+            card,
+            text="ul. Marszałkowska 45, 00-648 Warszawa",
+            font=("Arial", 11),
+            bg=WHITE,
+            fg=MUTED,
+        ).pack(anchor="w", pady=(5, 15))
+
+        tk.Label(
+            card,
+            text="Kontakt",
+            font=("Arial", 14, "bold"),
+            bg=WHITE,
+            fg=TEXT,
+        ).pack(anchor="w")
+
+        tk.Label(
+            card,
+            text="Telefon: +48 000 000 000\nE-mail: kontakt@urody-salon.example",
+            font=("Arial", 11),
+            bg=WHITE,
+            fg=MUTED,
+            justify="left",
         ).pack(anchor="w", pady=(5, 15))
 
         tk.Label(
