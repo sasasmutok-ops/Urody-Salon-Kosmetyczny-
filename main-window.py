@@ -2,8 +2,10 @@
 """Single-window Urody salon application."""
 
 from datetime import datetime, timedelta
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 from calculator import open_calculator
 from modules.appointment_logic import load_appointments
@@ -48,6 +50,8 @@ class UrodyApp:
         self.current_page = "home"
         self.flash_message = ""
         self.nav_buttons = {}
+        self.assets_path = Path(__file__).resolve().parent / "modules" / "assets"
+        self.image_refs = {}
 
         self.create_header()
         self.create_shell()
@@ -145,15 +149,68 @@ class UrodyApp:
             expand=True
         )
 
-        self.page_container = tk.Frame(
+        self.page_canvas = tk.Canvas(
             self.page_area,
+            bg=BG,
+            highlightthickness=0
+        )
+
+        self.page_scrollbar = ttk.Scrollbar(
+            self.page_area,
+            orient="vertical",
+            command=self.page_canvas.yview
+        )
+
+        self.page_canvas.configure(
+            yscrollcommand=self.page_scrollbar.set
+        )
+
+        self.page_scrollbar.pack(
+            side="right",
+            fill="y"
+        )
+
+        self.page_canvas.pack(
+            side="left",
+            fill="both",
+            expand=True
+        )
+
+        self.page_container = tk.Frame(
+            self.page_canvas,
             bg=BG
         )
-        self.page_container.pack(
-            fill="both",
-            expand=True,
-            padx=24,
-            pady=22
+
+        self.page_window = self.page_canvas.create_window(
+            (0, 0),
+            window=self.page_container,
+            anchor="nw"
+        )
+
+        self.page_container.bind(
+            "<Configure>",
+            lambda event: self.page_canvas.configure(
+                scrollregion=self.page_canvas.bbox("all")
+            )
+        )
+
+        self.page_canvas.bind(
+            "<Configure>",
+            lambda event: self.page_canvas.itemconfigure(
+                self.page_window,
+                width=event.width
+            )
+        )
+
+        self.page_canvas.bind_all(
+            "<MouseWheel>",
+            self._on_mousewheel
+        )
+
+    def _on_mousewheel(self, event):
+        self.page_canvas.yview_scroll(
+            int(-event.delta / 120),
+            "units"
         )
 
     # NAVIGATION
@@ -257,6 +314,28 @@ class UrodyApp:
             pady=12,
             cursor="hand2",
         )
+
+    # IMAGE LOADING
+
+    def _load_image(self, filename, max_width=110, max_height=110):
+        image_path = self.assets_path / filename
+
+        try:
+            with Image.open(image_path) as source:
+                image = source.convert("RGBA")
+                image.thumbnail(
+                    (max_width, max_height),
+                    Image.Resampling.LANCZOS
+                )
+                photo = ImageTk.PhotoImage(image)
+
+            return photo
+
+
+        except (OSError, tk.TclError) as error:
+            print(f"Nie można załadować obrazka {image_path}: {error}")
+            return None
+
 
     # HOME PAGE
 
@@ -368,22 +447,22 @@ class UrodyApp:
         actions.pack(fill="x")
 
         action_items = (
-            ("services", "✿", "Katalog usług",
+            ("services", "manicure.png", "Katalog usług",
              "Poznaj nasze zabiegi i ceny."),
-            ("calculator", "▦", "Kalkulator cen",
+            ("calculator", "calculator.png", "Kalkulator cen",
              "Oblicz koszt wybranych usług."),
-            ("planner", "▣", "Planer wizyty",
+            ("planner", "planner.png", "Planer wizyty",
              "Zaplanuj swoją wizytę."),
-            ("guide", "❀", "Poradnik",
+            ("guide", "guide.png", "Poradnik",
              "Odkryj wskazówki pielęgnacyjne."),
-            ("about", "✧", "O salonie",
+            ("about", "salon.png", "O salonie",
              "Poznaj nasz salon i kontakt."),
         )
 
         for column in range(3):
             actions.grid_columnconfigure(column, weight=1)
 
-        for index, (page, symbol, label, description) in enumerate(action_items):
+        for index, (page, image_name, label, description) in enumerate(action_items):
             item = tk.Frame(
                 actions,
                 bg=WHITE,
@@ -401,13 +480,16 @@ class UrodyApp:
                 pady=3,
             )
 
-            tk.Label(
-                item,
-                text=symbol,
-                font=("Arial", 15, "bold"),
-                bg=WHITE,
-                fg="#B69A5A",
-            ).pack(anchor="w", pady=(0, 7))
+            image = self._load_image(image_name)
+
+            if image is not None:
+                self.image_refs[page] = image
+
+                tk.Label(
+                    item,
+                    image=image,
+                    bg=WHITE,
+                ).pack(anchor="w", pady=(0, 8))
 
             tk.Label(
                 item,
