@@ -2,8 +2,8 @@
 """Single-window Urody salon application."""
 
 from datetime import datetime, timedelta
-from pathlib import Path
 import tkinter as tk
+from tkinter import ttk
 
 from calculator import open_calculator
 from modules.appointment_logic import load_appointments
@@ -33,6 +33,7 @@ class UrodyApp:
         ("services", "Katalog usług"),
         ("calculator", "Kalkulator cen"),
         ("planner", "Planer wizyty"),
+        ("appointments", "Wszystkie wizyty"),
         ("guide", "Poradnik"),
         ("about", "O salonie"),
     )
@@ -47,31 +48,6 @@ class UrodyApp:
         self.current_page = "home"
         self.flash_message = ""
         self.nav_buttons = {}
-
-        # Load images for the home page
-        assets_dir = Path(__file__).resolve().parent / "modules" / "assets"
-
-        self.home_images = {}
-
-        image_files = {
-            "services": "manicure.png",
-            "calculator": "calculator.png",
-            "planner": "planner.png",
-            "guide": "guide.png",
-            "about": "salon.png",
-        }
-
-        for page, filename in image_files.items():
-            image_path = assets_dir / filename
-
-            if image_path.exists():
-                try:
-                    picture = tk.PhotoImage(file=str(image_path))
-                    picture = picture.subsample(16, 16)
-                    self.home_images[page] = picture
-                except tk.TclError:
-                    print(f"Could not load image: {filename}")
-
 
         self.create_header()
         self.create_shell()
@@ -215,6 +191,7 @@ class UrodyApp:
             "services": self.show_services,
             "calculator": self.show_calculator,
             "planner": self.show_planner,
+            "appointments": self.show_appointments,
             "guide": self.show_guide,
             "about": self.show_about,
         }
@@ -424,23 +401,14 @@ class UrodyApp:
                 pady=3,
             )
 
-            # CARD IMAGE
-            if page in self.home_images:
-                tk.Label(
-                    item,
-                    image=self.home_images[page],
-                    bg=WHITE,
-                ).pack(anchor="w", pady=(0, 7))
-            else:
-                tk.Label(
-                    item,
-                    text=symbol,
-                    font=("Arial", 15, "bold"),
-                    bg=WHITE,
-                    fg="#B69A5A",
-                ).pack(anchor="w", pady=(0, 7))
+            tk.Label(
+                item,
+                text=symbol,
+                font=("Arial", 15, "bold"),
+                bg=WHITE,
+                fg="#B69A5A",
+            ).pack(anchor="w", pady=(0, 7))
 
-            # CARD TITLE
             tk.Label(
                 item,
                 text=label,
@@ -449,7 +417,6 @@ class UrodyApp:
                 fg=GREEN,
             ).pack(anchor="w")
 
-            # CARD DESCRIPTION
             tk.Label(
                 item,
                 text=description,
@@ -460,7 +427,6 @@ class UrodyApp:
                 justify="left",
             ).pack(anchor="w", pady=(6, 12))
 
-            # CARD BUTTON
             tk.Button(
                 item,
                 text="Otwórz  →",
@@ -566,6 +532,121 @@ class UrodyApp:
                 wraplength=720,
                 justify="left",
             ).pack(anchor="w", pady=(9, 0))
+
+    # SAVED APPOINTMENTS (LOCAL ADMIN VIEW)
+
+    def show_appointments(self):
+        self._page_heading(
+            "Wszystkie wizyty",
+            "Lokalna lista zapisów z tego komputera."
+        )
+
+        try:
+            appointments = load_appointments()
+        except (OSError, ValueError) as error:
+            self._inline_banner(
+                self.page_container,
+                f"Nie udało się wczytać wizyt: {error}",
+                error=True,
+            )
+            appointments = []
+
+        def appointment_sort_key(item):
+            try:
+                start = datetime.strptime(
+                    f"{item.get('date', '')} {item.get('time', '')}",
+                    "%d.%m.%Y %H:%M",
+                )
+                return (1, start)
+            except (TypeError, ValueError):
+                return (0, datetime.min)
+
+        appointments = sorted(
+            (item for item in appointments if isinstance(item, dict)),
+            key=appointment_sort_key,
+            reverse=True,
+        )
+
+        toolbar = tk.Frame(self.page_container, bg=BG)
+        toolbar.pack(fill="x", pady=(0, 12))
+
+        tk.Label(
+            toolbar,
+            text=f"Liczba zapisanych wizyt: {len(appointments)}",
+            font=("Arial", 11, "bold"),
+            bg=BG,
+            fg=TEXT,
+        ).pack(side="left")
+
+        self._action_button(
+            toolbar,
+            "Odśwież listę",
+            lambda: self.show_page("appointments"),
+        ).pack(side="right")
+
+        table_frame = tk.Frame(self.page_container, bg=BG)
+        table_frame.pack(fill="both", expand=True)
+
+        columns = ("date", "time", "services", "duration", "price")
+        table = ttk.Treeview(
+            table_frame,
+            columns=columns,
+            show="headings",
+            height=16,
+        )
+        table.heading("date", text="Data")
+        table.heading("time", text="Godzina")
+        table.heading("services", text="Usługi")
+        table.heading("duration", text="Czas")
+        table.heading("price", text="Cena")
+        table.column("date", width=105, minwidth=95, anchor="center")
+        table.column("time", width=85, minwidth=75, anchor="center")
+        table.column("services", width=390, minwidth=200, anchor="center")
+        table.column("duration", width=100, minwidth=85, anchor="center")
+        table.column("price", width=100, minwidth=85, anchor="center")
+
+        scrollbar = ttk.Scrollbar(
+            table_frame,
+            orient="vertical",
+            command=table.yview,
+        )
+        table.configure(yscrollcommand=scrollbar.set)
+        table.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        table.tag_configure("even", background=WHITE)
+        table.tag_configure("odd", background="#EEF1EB")
+
+        if not appointments:
+            table.insert(
+                "",
+                "end",
+                values=("—", "—", "Пока нет записанных визитов", "—", "—"),
+            )
+            return
+
+        for index, appointment in enumerate(appointments):
+            services = appointment.get("services", [])
+            service_names = ", ".join(
+                str(service.get("name", "Usługa"))
+                for service in services
+                if isinstance(service, dict)
+            ) or "—"
+            duration = appointment.get("total_duration", "—")
+            price = appointment.get("total_price", "—")
+
+            table.insert(
+                "",
+                "end",
+                values=(
+                    appointment.get("date", "—"),
+                    appointment.get("time", "—"),
+                    service_names,
+                    f"{duration} min" if duration != "—" else "—",
+                    f"{price} PLN" if price != "—" else "—",
+                ),
+                tags=("even" if index % 2 == 0 else "odd",),
+            )
 
     # CALCULATOR
 

@@ -82,23 +82,47 @@ class PriceCalculator:
                 (service, variable)
             )
 
-            # Checkbutton with readable colors
-            check = tk.Checkbutton(
+            indicator = tk.Canvas(
                 row,
-                text=service["name"],
-                variable=variable,
-                command=self.update_total,
-                font=("Arial", 12, "bold"),
+                width=18,
+                height=18,
                 bg=WHITE,
-                fg=TEXT,
-                activebackground=WHITE,
-                activeforeground=GREEN,
-                selectcolor=SAGE,
                 bd=0,
                 highlightthickness=0,
                 cursor="hand2",
+                takefocus=True,
             )
-            check.pack(side="left")
+            indicator.pack(side="left", padx=(0, 6))
+
+            name_label = tk.Label(
+                row,
+                text=service["name"],
+                font=("Arial", 12, "bold"),
+                bg=WHITE,
+                fg=TEXT,
+                anchor="w",
+                cursor="hand2",
+                takefocus=True,
+            )
+            name_label.pack(side="left", fill="x", expand=True)
+
+            self._draw_service_indicator(indicator, variable.get())
+            variable.trace_add(
+                "write",
+                lambda *_args, canvas=indicator, selected=variable:
+                self._draw_service_indicator(canvas, selected.get()),
+            )
+            for widget in (indicator, name_label):
+                widget.bind(
+                    "<Button-1>",
+                    lambda _event, selected=variable:
+                    self._toggle_service_choice(selected),
+                )
+                widget.bind(
+                    "<space>",
+                    lambda _event, selected=variable:
+                    self._toggle_service_choice(selected),
+                )
 
             tk.Label(
                 row,
@@ -180,6 +204,35 @@ class PriceCalculator:
             cursor="hand2",
         )
         self.clear_button.pack(side="left")
+
+    def _draw_service_indicator(self, canvas, selected):
+        canvas.delete("all")
+        canvas.create_rectangle(
+            2,
+            2,
+            16,
+            16,
+            outline=GREEN if selected else MUTED,
+            width=1,
+            fill=GREEN if selected else WHITE,
+        )
+        if selected:
+            canvas.create_line(
+                5,
+                9,
+                8,
+                12,
+                13,
+                6,
+                fill=WHITE,
+                width=2,
+                capstyle=tk.ROUND,
+                joinstyle=tk.ROUND,
+            )
+
+    def _toggle_service_choice(self, variable):
+        variable.set(not variable.get())
+        self.update_total()
 
     def update_total(self):
 
