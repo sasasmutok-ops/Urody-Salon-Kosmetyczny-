@@ -1,1 +1,0 @@
-# Brak zewnętrznych pakietów — aplikacja korzysta ze standardowej biblioteki Pythona.
